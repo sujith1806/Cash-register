@@ -1,23 +1,46 @@
-import logo from './logo.svg';
 import './App.css';
-
+import {Addnewtransact} from './components/addnewtransact';
+import {Transactionlist} from './components/transactionlist'
+import {useEffect, useState} from 'react';
+import Balance from './components/balance';
+import fire from './fire';
+import 'firebase/database';
 function App() {
+  const [transactlist,setTransactlist] = useState([
+      { id: 1, text: 'Tax', amount: 0,currtime:'June 8th 2021, 8:28 pm'},
+      { id: 4, text: 'Camera', amount: 0,currtime:'June 8th 2021, 8:28 pm'},
+  ]);
+  const ref = fire.firestore().collection("transactions");
+
+  function getTransactions(){
+    ref.onSnapshot((querySnapShot)=>{
+      let items = [];
+      querySnapShot.forEach((doc)=>{
+        items.push(doc.data());
+      });
+      setTransactlist(items);
+    })
+  }
+  useEffect(()=>{
+    getTransactions();
+        // eslint-disable-next-line
+  },[]);
+  const addTransaction = (transaction) => {
+    ref
+       .doc()
+       .set(transaction)
+       .catch((err)=>{
+         console.error(err);
+       });
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h2>Cash Register</h2>
+      <Balance transactlist={transactlist}/>
+      <Transactionlist transactionlist={transactlist}/> 
+      <Addnewtransact addTransaction={addTransaction}/> 
+        
     </div>
   );
 }
